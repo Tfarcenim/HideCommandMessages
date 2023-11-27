@@ -25,6 +25,7 @@ archivesBaseName = project.modid
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+def use_mixins = project.findProperty('enable_mixins').toBoolean();
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
@@ -45,6 +46,7 @@ minecraft {
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
+
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
@@ -52,7 +54,9 @@ minecraft {
             properties 'mixin.env.remapRefMap': 'true'
             property 'mixin.env.refMapRemappingFile', "${project.projectDir}/build/createSrgToMcp/output.srg"
             workingDirectory project.file('run')
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
+            if (use_mixins) {
+                arg "-mixin.config=" + modid + ".mixins.json"
+            }
 
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
@@ -79,8 +83,9 @@ minecraft {
         server {
             properties 'mixin.env.remapRefMap': 'true'
             property 'mixin.env.refMapRemappingFile', "${project.projectDir}/build/createSrgToMcp/output.srg"
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
-
+            if (use_mixins) {
+                arg "-mixin.config=" + modid + ".mixins.json"
+            }
             workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'REGISTRIES'
@@ -236,5 +241,7 @@ publishing {
 apply plugin: 'org.spongepowered.mixin'
 
 mixin {
+    if (use_mixins) {
     add sourceSets.main, "${modid}.refmap.json"
+    }
 }
